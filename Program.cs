@@ -27,9 +27,9 @@ namespace PROGRAMMINGPROJECT_2
 
             Console.WriteLine($"{restaurants.Count} restaurants loaded!");
             int foodCount = restaurants.Sum(r => r.RestaurantMenu?.FoodItems.Count ?? 0);
-            Console.WriteLine($"{foodCount} food items loaded!");
-            Console.WriteLine($"{customers.Count} customers loaded!");
-            Console.WriteLine($"{allOrders.Count} orders loaded!!!");
+            Console.WriteLine($"{foodCount} food items loaded!!!");
+            Console.WriteLine($"{customers.Count} customers loaded!!!");
+            Console.WriteLine($"{allOrders.Count} orders loaded!!!!");
 
             while (true)
             {
