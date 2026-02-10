@@ -1,7 +1,9 @@
-﻿csharp PROGRAMMINGPROJECT 2\Order.cs
-using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Globalization;
+using System.Text;
+using System;
 
 namespace PROGRAMMINGPROJECT_2
 {
@@ -11,20 +13,14 @@ namespace PROGRAMMINGPROJECT_2
         public Customer Customer { get; set; }
         public Restaurant Restaurant { get; set; }
         public DateTime DeliveryDateTime { get; set; }
+        public string DeliveryAddress { get; set; }
+        public string SpecialRequest { get; set; }
+        public string PaymentMethod { get; set; }
         public double TotalAmount { get; set; }
         public string OrderStatus { get; set; }
         public List<OrderFoodItem> OrderedItems { get; set; } = new List<OrderFoodItem>();
 
-        public Order() { }
-
-        public Order(string id, Customer customer, Restaurant restaurant, DateTime dt, double total, string status)
-        {
-            OrderId = id;
-            Customer = customer;
-            Restaurant = restaurant;
-            DeliveryDateTime = dt;
-            TotalAmount = total;
-            OrderStatus = status ?? string.Empty;
-        }
+        public Order(string id, Customer c, Restaurant r, DateTime dt, double total, string status)
+        { OrderId = id; Customer = c; Restaurant = r; DeliveryDateTime = dt; TotalAmount = total; OrderStatus = status; }
     }
 }

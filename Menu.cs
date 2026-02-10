@@ -1,6 +1,9 @@
-﻿csharp PROGRAMMINGPROJECT 2\Menu.cs
+﻿using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Globalization;
+using System.Text;
 using System;
-using System.Collections.Generic;
 
 namespace PROGRAMMINGPROJECT_2
 {
@@ -9,18 +12,7 @@ namespace PROGRAMMINGPROJECT_2
         public string MenuId { get; set; }
         public string MenuName { get; set; }
         public List<FoodItem> FoodItems { get; set; } = new List<FoodItem>();
-
-        public Menu() { }
-
-        public Menu(string id, string name)
-        {
-            MenuId = id ?? string.Empty;
-            MenuName = name ?? string.Empty;
-        }
-
-        public void AddFoodItem(FoodItem item)
-        {
-            if (item != null) FoodItems.Add(item);
-        }
+        public Menu(string id, string name) { MenuId = id; MenuName = name; }
+        public void AddFoodItem(FoodItem item) => FoodItems.Add(item);
     }
 }

@@ -1,4 +1,8 @@
-﻿csharp PROGRAMMINGPROJECT 2\SpecialOffer.cs
+﻿using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Globalization;
+using System.Text;
 using System;
 
 namespace PROGRAMMINGPROJECT_2
@@ -9,17 +13,6 @@ namespace PROGRAMMINGPROJECT_2
         public string OfferCode { get; set; }
         public string Description { get; set; }
         public double DiscountAmount { get; set; }
-
-        public SpecialOffer() { }
-
-        public SpecialOffer(string resName, string code, string desc, double discount)
-        {
-            RestaurantName = resName ?? string.Empty;
-            OfferCode = code ?? string.Empty;
-            Description = desc ?? string.Empty;
-            DiscountAmount = discount;
-        }
-
-        public override string ToString() => $"{OfferCode} @ {RestaurantName}: {Description} ({DiscountAmount:F2})";
+        public SpecialOffer(string r, string c, string d, double disc) { RestaurantName = r; OfferCode = c; Description = d; DiscountAmount = disc; }
     }
 }

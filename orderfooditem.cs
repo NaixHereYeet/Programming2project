@@ -1,4 +1,8 @@
-﻿csharp PROGRAMMINGPROJECT 2\OrderFoodItem.cs
+﻿using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Globalization;
+using System.Text;
 using System;
 
 namespace PROGRAMMINGPROJECT_2
@@ -7,15 +11,7 @@ namespace PROGRAMMINGPROJECT_2
     {
         public FoodItem Item { get; set; }
         public int Quantity { get; set; }
-
-        public OrderFoodItem() { }
-
-        public OrderFoodItem(FoodItem item, int qty)
-        {
-            Item = item;
-            Quantity = Math.Max(1, qty);
-        }
-
+        public OrderFoodItem(FoodItem item, int qty) { Item = item; Quantity = qty; }
         public double CalculateSubtotal() => (Item?.Price ?? 0.0) * Quantity;
     }
 }

@@ -1,10 +1,12 @@
-﻿csharp PROGRAMMINGPROJECT 2\Program.cs
-using System;
+﻿//Yi Xian - 1,4,6,8
+//Ibraheem - 2,3,5,7
+
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Globalization;
 using System.Text;
+using System;
 
 namespace PROGRAMMINGPROJECT_2
 {
@@ -13,204 +15,154 @@ namespace PROGRAMMINGPROJECT_2
         static List<Restaurant> restaurants = new List<Restaurant>();
         static List<Customer> customers = new List<Customer>();
         static List<Order> allOrders = new List<Order>();
-        static List<SpecialOffer> specialOffers = new List<SpecialOffer>();
+        static Stack<Order> refundStack = new Stack<Order>();
 
         static void Main()
         {
-            Console.WriteLine("Welcome to the Gruberoo Food Delivery System");
-
+           
             LoadRestaurants("restaurants.csv");
             LoadFoodItems("fooditems.csv");
             LoadCustomers("customers.csv");
             LoadOrders("orders.csv");
-            LoadSpecialOffers("specialoffers.csv");
-
-            Console.WriteLine($"{restaurants.Count} restaurants loaded!");
-            int foodCount = restaurants.Sum(r => r.RestaurantMenu?.FoodItems.Count ?? 0);
-            Console.WriteLine($"{foodCount} food items loaded!!!");
-            Console.WriteLine($"{customers.Count} customers loaded!!!");
-            Console.WriteLine($"{allOrders.Count} orders loaded!!!!");
 
             while (true)
             {
                 Console.WriteLine("\n===== Gruberoo Food Delivery System =====");
-                Console.WriteLine("1. List all restaurants and menu items");
-                Console.WriteLine("2. List all order");
+                Console.WriteLine("1. List Restaurants and Menus");
+                Console.WriteLine("2. List All Orders");
+                Console.WriteLine("3. Create New Order");
+                Console.WriteLine("4. Process Order (Manual)");
+                Console.WriteLine("5. Modify Order");
+                Console.WriteLine("6. Cancel Order");
+                Console.WriteLine("7. Bulk Process (Advanced A)");
+                Console.WriteLine("8. Financial Report (Advanced B)");
                 Console.WriteLine("0. Exit");
-                Console.Write("Enter your choice: ");
-                var choice = Console.ReadLine()?.Trim();
+                Console.Write("Choice: ");
+                string choice = Console.ReadLine();
 
                 if (choice == "1") DisplayRestaurantsAndMenus();
                 else if (choice == "2") DisplayAllOrders();
+                else if (choice == "3") CreateNewOrder();
+                else if (choice == "4") ProcessOrder();
+                else if (choice == "5") ModifyOrder();
+                else if (choice == "6") DeleteOrder();
+                else if (choice == "7") BulkProcessOrders();
+                else if (choice == "8") DisplayTotalRevenue();
                 else if (choice == "0") break;
-                else Console.WriteLine("Invalid option. Try again.");
             }
         }
 
-        static void LoadRestaurants(string filePath)
-        {
-            if (!File.Exists(filePath)) return;
-            var lines = File.ReadAllLines(filePath, Encoding.UTF8).Skip(1);
-            foreach (var line in lines)
-            {
-                var p = SplitCsvLine(line);
-                if (p.Length < 3) continue;
-                restaurants.Add(new Restaurant(p[0].Trim(), p[1].Trim(), p[2].Trim()));
-            }
-        }
-
-        static void LoadFoodItems(string filePath)
-        {
-            if (!File.Exists(filePath)) return;
-            var lines = File.ReadAllLines(filePath, Encoding.UTF8).Skip(1);
-            foreach (var line in lines)
-            {
-                var p = SplitCsvLine(line);
-                if (p.Length < 4) continue;
-                var rest = restaurants.FirstOrDefault(r => r.RestaurantId == p[0].Trim());
-                if (rest == null) continue;
-
-                if (!double.TryParse(p[3], NumberStyles.Any, CultureInfo.InvariantCulture, out double price)) continue;
-                var item = new FoodItem(p[1].Trim(), p[2].Trim(), price);
-                rest.RestaurantMenu.AddFoodItem(item);
-            }
-        }
-
-        static void LoadCustomers(string filePath)
-        {
-            if (!File.Exists(filePath)) return;
-            var lines = File.ReadAllLines(filePath, Encoding.UTF8).Skip(1);
-            foreach (var line in lines)
-            {
-                var p = SplitCsvLine(line);
-                if (p.Length < 2) continue;
-                customers.Add(new Customer(p[0].Trim(), p[1].Trim()));
-            }
-        }
-
-        static void LoadOrders(string filePath)
-        {
-            if (!File.Exists(filePath)) return;
-            var lines = File.ReadAllLines(filePath, Encoding.UTF8).Skip(1);
-            foreach (var line in lines)
-            {
-                var p = SplitCsvLine(line);
-                if (p.Length < 9) continue;
-
-                // columns: OrderId, CustomerEmail, RestaurantId, Date(dd/MM/yyyy), Time(HH:mm), ... , Total, Status
-                var orderId = p[0].Trim();
-                var custEmail = p[1].Trim();
-                var restId = p[2].Trim();
-                var datePart = p[3].Trim();
-                var timePart = p[4].Trim();
-                if (!DateTime.TryParseExact($"{datePart} {timePart}", "dd/MM/yyyy HH:mm", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime dt))
-                {
-                    if (!DateTime.TryParse($"{datePart} {timePart}", CultureInfo.InvariantCulture, DateTimeStyles.None, out dt))
-                        continue;
-                }
-
-                if (!double.TryParse(p[7], NumberStyles.Any, CultureInfo.InvariantCulture, out double total)) continue;
-                var status = p[8].Trim();
-
-                var cust = customers.FirstOrDefault(c => string.Equals(c.Email, custEmail, StringComparison.OrdinalIgnoreCase));
-                var rest = restaurants.FirstOrDefault(r => r.RestaurantId == restId);
-
-                var order = new Order(orderId, cust, rest, dt, total, status);
-                allOrders.Add(order);
-                if (cust != null) cust.AddOrder(order);
-                if (rest != null) rest.OrderQueue.Enqueue(order);
-            }
-        }
-
-        static void LoadSpecialOffers(string filePath)
-        {
-            if (!File.Exists(filePath)) return;
-            var lines = File.ReadAllLines(filePath, Encoding.UTF8).Skip(1);
-            foreach (var line in lines)
-            {
-                var p = SplitCsvLine(line);
-                if (p.Length < 4) continue;
-                if (!double.TryParse(p[3], NumberStyles.Any, CultureInfo.InvariantCulture, out double discount)) discount = 0.0;
-                specialOffers.Add(new SpecialOffer(p[0].Trim(), p[1].Trim(), p[2].Trim(), discount));
-            }
-        }
-
+        
         static void DisplayRestaurantsAndMenus()
         {
-            Console.WriteLine("\nAll Restaurants and Menu Items");
-            Console.WriteLine("==============================");
-            foreach (var res in restaurants)
+            foreach (var r in restaurants)
             {
-                Console.WriteLine($"Restaurant: {res.Name} ({res.RestaurantId})");
-                foreach (var item in res.RestaurantMenu.FoodItems)
-                {
-                    Console.WriteLine($"   - {item.Name}: {item.Description} - ${item.Price:F2}");
-                }
-                Console.WriteLine();
+                Console.WriteLine($"\n[{r.RestaurantId}] {r.Name}");
+                foreach (var i in r.RestaurantMenu.FoodItems)
+                    Console.WriteLine($"  - {i.Name}: ${i.Price:F2}");
             }
         }
 
         static void DisplayAllOrders()
         {
-            Console.WriteLine("\nAll Orders");
-            Console.WriteLine("==========");
-            Console.WriteLine("{0,-10} {1,-15} {2,-18} {3,-20} {4,-10} {5}",
-                "Order ID", "Customer", "Restaurant", "Delivery Date/Time", "Amount", "Status");
-            Console.WriteLine(new string('-', 95));
-
+            Console.WriteLine("\n{0,-8} {1,-15} {2,-15} {3,-10} {4}", "ID", "Customer", "Restaurant", "Total", "Status");
             foreach (var o in allOrders)
-            {
-                var custName = o.Customer?.Name ?? "Unknown";
-                var restName = o.Restaurant?.Name ?? "Unknown";
-                Console.WriteLine("{0,-10} {1,-15} {2,-18} {3,-20} ${4,-10:F2} {5}",
-                    o.OrderId, custName, restName, o.DeliveryDateTime.ToString("dd/MM/yyyy HH:mm"), o.TotalAmount, o.OrderStatus);
-            }
+                Console.WriteLine("{0,-8} {1,-15} {2,-15} ${3,-9:F2} {4}", o.OrderId, o.Customer?.Name, o.Restaurant?.Name, o.TotalAmount, o.OrderStatus);
         }
 
-        // Robust CSV splitter for quoted fields/doubled quotes
-        static string[] SplitCsvLine(string line)
+        static void CreateNewOrder()
         {
-            if (line == null) return Array.Empty<string>();
-            var fields = new List<string>();
-            var sb = new StringBuilder();
-            bool inQuotes = false;
+            Console.Write("Customer Email: "); string email = Console.ReadLine();
+            var cust = customers.FirstOrDefault(c => c.Email.Equals(email, StringComparison.OrdinalIgnoreCase));
+            Console.Write("Restaurant ID: "); string rid = Console.ReadLine();
+            var res = restaurants.FirstOrDefault(r => r.RestaurantId.Equals(rid, StringComparison.OrdinalIgnoreCase));
 
-            for (int i = 0; i < line.Length; i++)
+            if (cust == null || res == null) { Console.WriteLine("Invalid User/Restaurant!"); return; }
+
+            string id = (allOrders.Count + 1001).ToString();
+            Order o = new Order(id, cust, res, DateTime.Now.AddHours(2), 0, "Pending");
+
+           
+            var item = res.RestaurantMenu.FoodItems[0];
+            o.OrderedItems.Add(new OrderFoodItem(item, 1));
+            o.TotalAmount = item.Price + 5.00;
+
+            allOrders.Add(o); cust.AddOrder(o); res.OrderQueue.Enqueue(o);
+            Console.WriteLine($"Order {id} created successfully!");
+        }
+
+        static void ProcessOrder()
+        {
+            Console.Write("Enter Restaurant ID: ");
+            string rid = Console.ReadLine();
+            var res = restaurants.FirstOrDefault(r => r.RestaurantId == rid);
+            if (res == null || res.OrderQueue.Count == 0) return;
+
+            Order o = res.OrderQueue.Peek();
+            Console.WriteLine($"Order {o.OrderId} Status: {o.OrderStatus}. [C]onfirm / [D]eliver / [R]eject?");
+            string act = Console.ReadLine().ToUpper();
+            if (act == "C") o.OrderStatus = "Preparing";
+            else if (act == "D" && o.OrderStatus == "Preparing") { o.OrderStatus = "Delivered"; res.OrderQueue.Dequeue(); }
+            else if (act == "R") { o.OrderStatus = "Rejected"; refundStack.Push(res.OrderQueue.Dequeue()); }
+        }
+
+        static void ModifyOrder()
+        {
+            Console.Write("Customer Email: "); string email = Console.ReadLine();
+            var cust = customers.FirstOrDefault(c => c.Email == email);
+            var pending = cust?.OrderList.Where(x => x.OrderStatus == "Pending").ToList();
+            if (pending == null || !pending.Any()) return;
+            Console.WriteLine("Pending IDs: " + string.Join(", ", pending.Select(p => p.OrderId)));
+            Console.Write("Select ID: "); string id = Console.ReadLine();
+            var o = pending.FirstOrDefault(x => x.OrderId == id);
+            if (o != null) { Console.Write("New Address: "); o.DeliveryAddress = Console.ReadLine(); Console.WriteLine("Updated!"); }
+        }
+
+        static void DeleteOrder()
+        {
+            Console.Write("Customer Email: "); string email = Console.ReadLine();
+            var cust = customers.FirstOrDefault(c => c.Email == email);
+            Console.Write("Order ID: "); string id = Console.ReadLine();
+            var o = cust?.OrderList.FirstOrDefault(x => x.OrderId == id && x.OrderStatus == "Pending");
+            if (o != null) { o.OrderStatus = "Cancelled"; refundStack.Push(o); Console.WriteLine("Cancelled."); }
+        }
+
+        static void BulkProcessOrders()
+        {
+            var pending = allOrders.Where(o => o.OrderStatus == "Pending").ToList();
+            foreach (var o in pending)
             {
-                char c = line[i];
-                if (inQuotes)
+                if ((o.DeliveryDateTime - DateTime.Now).TotalHours < 1) { o.OrderStatus = "Rejected"; refundStack.Push(o); }
+                else o.OrderStatus = "Preparing";
+            }
+            Console.WriteLine("Bulk Processing Complete.");
+        }
+
+        static void DisplayTotalRevenue()
+        {
+            double rev = allOrders.Where(o => o.OrderStatus == "Delivered").Sum(o => o.TotalAmount - 5.00);
+            double refu = refundStack.Sum(o => o.TotalAmount);
+            Console.WriteLine($"Total Revenue: ${rev:F2} | Total Refunds: ${refu:F2}");
+        }
+
+       
+        static void LoadRestaurants(string f) { if (File.Exists(f)) foreach (var l in File.ReadAllLines(f).Skip(1)) { var p = l.Split(','); restaurants.Add(new Restaurant(p[0], p[1], p[2])); } }
+        static void LoadFoodItems(string f) { if (File.Exists(f)) foreach (var l in File.ReadAllLines(f).Skip(1)) { var p = l.Split(','); var res = restaurants.FirstOrDefault(r => r.RestaurantId == p[0]); res?.RestaurantMenu.AddFoodItem(new FoodItem(p[1], p[2], double.Parse(p[3]))); } }
+        static void LoadCustomers(string f) { if (File.Exists(f)) foreach (var l in File.ReadAllLines(f).Skip(1)) { var p = l.Split(','); customers.Add(new Customer(p[0], p[1])); } }
+        static void LoadOrders(string f)
+        {
+            if (!File.Exists(f)) return;
+            foreach (var l in File.ReadAllLines(f).Skip(1))
+            {
+                var p = l.Split(',');
+                var c = customers.FirstOrDefault(x => x.Email == p[1]);
+                var r = restaurants.FirstOrDefault(x => x.RestaurantId == p[2]);
+                if (c != null && r != null)
                 {
-                    if (c == '"')
-                    {
-                        if (i + 1 < line.Length && line[i + 1] == '"')
-                        {
-                            sb.Append('"');
-                            i++;
-                        }
-                        else
-                        {
-                            inQuotes = false;
-                        }
-                    }
-                    else
-                    {
-                        sb.Append(c);
-                    }
-                }
-                else
-                {
-                    if (c == '"') inQuotes = true;
-                    else if (c == ',')
-                    {
-                        fields.Add(sb.ToString());
-                        sb.Clear();
-                    }
-                    else sb.Append(c);
+                    var o = new Order(p[0], c, r, DateTime.Now, double.Parse(p[7]), p[8]);
+                    allOrders.Add(o); c.AddOrder(o); r.OrderQueue.Enqueue(o);
                 }
             }
-
-            fields.Add(sb.ToString());
-            return fields.ToArray();
         }
     }
 }

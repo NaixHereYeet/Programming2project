@@ -1,4 +1,8 @@
-﻿csharp PROGRAMMINGPROJECT 2\FoodItem.cs
+﻿using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Globalization;
+using System.Text;
 using System;
 
 namespace PROGRAMMINGPROJECT_2
@@ -8,16 +12,6 @@ namespace PROGRAMMINGPROJECT_2
         public string Name { get; set; }
         public string Description { get; set; }
         public double Price { get; set; }
-
-        public FoodItem() { }
-
-        public FoodItem(string name, string description, double price)
-        {
-            Name = name ?? string.Empty;
-            Description = description ?? string.Empty;
-            Price = price;
-        }
-
-        public override string ToString() => $"{Name}: {Description} - ${Price:F2}";
+        public FoodItem(string name, string desc, double price) { Name = name; Description = desc; Price = price; }
     }
 }
